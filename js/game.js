@@ -143,7 +143,7 @@ function create() {
 function update(time, delta) {
     // Runs once per frame for the duration of the scene
     // player.body.setVelocity(0);
-    playerSpeed = 3
+    playerSpeed = 2.5
     
     
     // Horizontal movement
