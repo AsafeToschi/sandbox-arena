@@ -1,4 +1,5 @@
 let player, tileset, map;
+
 const config = {
     type: Phaser.AUTO, // Which renderer to use
     width: 512, // Canvas width in pixels
@@ -11,24 +12,34 @@ const config = {
         matter: {
             gravity: { y: 0 }, // Top down game, so no gravity
             enableSleep: true,
-            debug: false
+            debug: true
         }
+    },
+    plugins:{
+        global: [{
+            key: 'AnimatedTiles',
+            plugin: "js/phaser-plugins/AnimatedTiles.min.js",
+            start: true
+        }]
     },
     scene: {
         preload: preload,
         create: create,
         update: update
-    }
+    },
 };
-
 const game = new Phaser.Game(config);
 
 function preload() {
     // Runs once, loads up assets like images and audio
     this.load.image("arena-tiles", "assets/arena-tileset.png");
     this.load.image("shadows", "assets/shadows.png");
+    this.load.image("banner", "assets/banner.png");
+    this.load.image("torches", "assets/torch.png");
     this.load.tilemapTiledJSON("map", "assets/arena-map.json");
     this.load.spritesheet('player', 'assets/adventurer.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.plugin("AnimatedTiles", 'js/phaser-plugins/AnimatedTiles.min.js', true)
+    
 }
 
 function create() {
@@ -41,20 +52,22 @@ function create() {
     // TILESETS
     tileset = map.addTilesetImage("arena-tileset", "arena-tiles");
     const tilesetShadows = map.addTilesetImage("shadows", "shadows");
+    const tilesetBanner = map.addTilesetImage("banner", "banner");
+    const tilesetTorches = map.addTilesetImage("torch", "torches");
 
 
     // Parameters: layer name (or index) from Tiled, tileset, x, y
     // LAYERS
-    floor = map.createStaticLayer("floor", tileset, 0, 0); // layer index, tileset, x, y
-    const wallsBack = map.createStaticLayer("wallsBack", tileset, 0, 0); // layer index, tileset, x, y
-    const wallsFront = map.createStaticLayer("wallsFront", tileset, 0, 0); // layer index, tileset, x, y
-    const decorations = map.createStaticLayer("decorations", tileset, 0, 0); // layer index, tileset, x, y
-    const shadows = map.createStaticLayer("shadows", tilesetShadows, 0, 0); // layer index, tileset, x, y
+    const floor = map.createDynamicLayer("floor", tileset, 0, 0); // layer index, tileset, x, y
+    const wallsBack = map.createDynamicLayer("wallsBack", tileset, 0, 0); // layer index, tileset, x, y
+    const wallsFront = map.createDynamicLayer("wallsFront", tileset, 0, 0); // layer index, tileset, x, y
+    const decorations = map.createDynamicLayer("decorations", [tileset,tilesetBanner,tilesetTorches], 0, 0); // layer index, tileset, x, y
+    const shadows = map.createDynamicLayer("shadows", tilesetShadows, 0, 0); // layer index, tileset, x, y
 
     // Profundidade
     wallsBack.setDepth(0);
-    shadows.setDepth(5);
-    wallsFront.setDepth(10);
+    shadows.setDepth(2);
+    wallsFront.setDepth(3);
 
     // collide
     wallsBack.setCollisionFromCollisionGroup(true)
@@ -64,11 +77,11 @@ function create() {
 
     // Add Collider
     player = this.matter.add.sprite(80, 208, 'player', 0);
-    player.displayHeight = 10
-    player.displayWidth = 10
-    player.scale = 1.1
-    player.setOrigin(0.45,0.8)
-    player.setFrictionAir(0.2)
+    // player.displayHeight = 10
+    // player.displayWidth = 10
+    // player.scale = 1.1
+    // player.setOrigin(0.45,0.8)
+    player.setFrictionAir(0.25)
     player.setFixedRotation();
     colliders = [wallsBack, wallsFront, floor]
     this.matter.world.convertTilemapLayer(floor);
@@ -142,7 +155,6 @@ function create() {
 }
 function update(time, delta) {
     // Runs once per frame for the duration of the scene
-    // player.body.setVelocity(0);
     playerSpeed = 2.5
     
     
